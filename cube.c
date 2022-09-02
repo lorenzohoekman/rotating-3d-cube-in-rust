@@ -23,6 +23,10 @@ int idx;
 
 // my debug
 
+FILE *fp;
+
+
+
 
 
 //
@@ -53,14 +57,17 @@ void calculateForSurface(float cubeX, float cubeY, float cubeZ, int ch) {
 
     idx = xp + yp * width;
 
-    //
-    FILE *fp;
-
-
-    fp=fopen("my_test.txt", "w");
+    /*
+    fp=fopen("./my_test.txt", "w");
+    
     if(fp == NULL){
-        exit(-1);
+        printf( "fp is null\n" );
+        //exit(-1);
     }
+    printf("This is A: %f", A);
+    printf("This is B: %f", B);
+    printf("This is C: %f", C);
+
     fprintf(fp, "This is a string which is written to a file\n");
     fprintf(fp, "x: %f \n", x );
     fprintf(fp, "z: %f \n", z );
@@ -69,10 +76,11 @@ void calculateForSurface(float cubeX, float cubeY, float cubeZ, int ch) {
     fprintf(fp, "yp: %d \n", yp );
     fprintf(fp, "idx: %d \n", idx );
     fprintf(fp, "ooz: %f \n", ooz );
+    fflush(fp); 
     fclose(fp);
-
+    */
     
-    //
+    // 
     if (idx >= 0 && idx < width * height) {
         if (ooz > zBuffer[idx]) {
             zBuffer[idx] = ooz;
@@ -80,11 +88,13 @@ void calculateForSurface(float cubeX, float cubeY, float cubeZ, int ch) {
         }
     }
 
-    exit(1);
+    //exit(1);
 }
 
 int main() {
     printf("\x1b[2J");
+
+ 
     while (1) {
         memset(buffer, backgroundASCIICode, width * height);
         memset(zBuffer, 0, width * height * 4);
@@ -132,13 +142,24 @@ int main() {
         }
         printf("\x1b[H");
         for (int k = 0; k < width * height; k++) {
-        putchar(k % width ? buffer[k] : 10);
+            //putchar(k % width ? buffer[k] : 10);
         }
+
+        printf("1 A: %f", A);
+        printf("1 B: %f", B);
+        printf("1 C: %f\n", C);
+        //fflush();
 
         A += 0.05;
         B += 0.05;
         C += 0.01;
-        usleep(8000 * 2);
+
+        printf("2 A: %f", A);
+        printf("2 B: %f", B);
+        printf("2 C: %f\n", C);
+        //fflush();
+        usleep(1000 * 10000);
+        
     }
     return 0;
 }

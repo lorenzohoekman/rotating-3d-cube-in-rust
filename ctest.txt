@@ -1,8 +1,0 @@
-This is a string which is written to a file
-x: -20.000000 
-z: 80.000000 
-y: -20.000000 
-xp: 20 
-yp: 12 
-idx: 1940 
-ooz: 0.012500 

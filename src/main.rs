@@ -3,33 +3,49 @@ use std::{thread, time::{self, Duration}, io::{stdout, Write}};
 static CUBE_WIDTH: f32 = 20.0;
 static WIDTH: i32 = 160;
 static HEIGHT: i32 = 44;
-static BACKGROUND_ASCII_CODE: char = ' ';
+static BACKGROUND_ASCII_CODE: char = '.';
 static DISTANCE_FROM_CAM:i32 = 100;
 static K1: f32 = 40.0;
-static TEN_MILLIS: Duration = time::Duration::from_millis(100);
+static TEN_MILLIS: Duration = time::Duration::from_millis(1000);
+
+static mut A: f32 = 0.;
+static mut B: f32 = 0.;
+static mut C: f32 = 0.;
 
 fn calculate_x(
     i: &f32, j: &f32,  k: &f32, 
-    a: &f32, b: &f32, c: &f32 
+    //a: &f32, b: &f32, c: &f32 
 ) -> f32{
-    j * a.sin() * b.sin() * c.cos() - k * a.cos() * b.sin() * c.cos() +
-    j * a.cos() * c.sin() + k * a.sin() * c.sin() + i * b.cos() * b.cos()
+    //let a = unsafe {A.clone()};
+    //let b = unsafe {B.clone()};
+    //let c = unsafe {C.clone()};
+
+    unsafe {
+        j * A.sin() * B.sin() * C.cos() - k * A.cos() * B.sin() * C.cos() +
+        j * A.cos() * C.sin() + k * A.sin() * C.sin() + i * B.cos() * B.cos()
+    }
+
+   
 }
 
 fn calculate_y(
     i: &f32, j: &f32,  k: &f32, 
-    a: &f32, b: &f32, c: &f32 
+    //a: &f32, b: &f32, c: &f32 
 ) -> f32{
-    j * a.cos() * c.cos() + k * a.sin() * c.cos() - 
-    j * a.sin() * b.sin() * c.sin() + k * a.cos() * b.sin() * c.sin() - 
-    i * b.cos() * c.sin()
+    unsafe{
+        j * A.cos() * C.cos() + k * A.sin() * C.cos() - 
+        j * A.sin() * B.sin() * C.sin() + k * A.cos() * B.sin() * C.sin() - 
+        j * B.cos() * C.sin()
+    }
 }
 
 fn calculate_z(
     i: &f32, j: &f32,  k: &f32, 
-    a: &f32, b: &f32 
+    //a: &f32, b: &f32 
 ) -> f32{
-    k * a.cos() * b.cos() - j * a.sin() * b.cos() + i * b.sin()
+    unsafe {
+        k * A.cos() * B.cos() - j * C.sin() * B.cos() + i * B.sin()
+    }
 }
 
 
@@ -39,9 +55,9 @@ fn calculate_for_surface(
     z_buffer: &mut [f32], buffer:&mut [char]
 ){
     
-    let x = calculate_x(cube_x, cube_y, cube_z, a, b, c);
-    let y = calculate_y(cube_x, cube_y, cube_z, a, b, c);
-    let z = calculate_z(cube_x, cube_y, cube_z, a, b) + DISTANCE_FROM_CAM as f32;
+    let x = calculate_x(cube_x, cube_y, cube_z);
+    let y = calculate_y(cube_x, cube_y, cube_z);
+    let z = calculate_z(cube_x, cube_y, cube_z) + DISTANCE_FROM_CAM as f32;
 
     // out of zone
     let ooz = 1. / z;
@@ -53,15 +69,7 @@ fn calculate_for_surface(
     let idx: i32 = xp + yp * WIDTH as i32 ;
     
 
-    /*  let x = -20.0;
-    let z = 80.;
-    let y = -20.;
-    let xp = 20;
-    let yp = 12;
-    let idx = 1940;
-    let ooz= 0.012500;  */
-
-    if idx >= 0 && idx < (WIDTH * HEIGHT).try_into().unwrap() {
+    if idx >= 0 && idx < (WIDTH * HEIGHT) {
         
         if ooz > z_buffer[idx as usize] as f32 {
             z_buffer[idx as usize] = ooz;
@@ -70,8 +78,8 @@ fn calculate_for_surface(
     }
 }
 fn main() {
-
-    let (mut a, mut b, mut c):  (f32, f32, f32) = (0., 0., 0.);
+    
+    let (mut a, mut b, mut c):  (f32, f32, f32) = (0.000000, 0.000000, 0.000000);
     let mut buffer: Vec<char> = vec![0 as char; (HEIGHT * WIDTH) as usize];
     let mut z_buffer: Vec<f32> = vec![0.; (HEIGHT * WIDTH * 4)as usize];
 
@@ -86,8 +94,8 @@ fn main() {
         z_buffer.fill(0.);   
 
         // 
-        let mut cube_x = -CUBE_WIDTH;
-        let mut cube_y = -CUBE_WIDTH;
+        let mut cube_x: f32 = -CUBE_WIDTH;
+        let mut cube_y: f32 = -CUBE_WIDTH;
 
         // Calculating cube
         while cube_x < CUBE_WIDTH{
@@ -118,6 +126,8 @@ fn main() {
                     &a, &b, &c, &mut z_buffer, &mut buffer
                 ); 
 
+                
+
                 cube_y += increment_speed;
             }
             cube_x  += increment_speed
@@ -142,9 +152,15 @@ fn main() {
             k += 1;
         }
 
-        a += 0.05;
-        b += 0.05;
-        c += 0.01;
+        unsafe {
+            A += 0.05;
+            B += 0.05;
+            C += 0.01;
+        }
+
+        //println!("{} {} {}", &a, &b, &c);
+
+        
 
         thread::sleep(TEN_MILLIS);
     }
